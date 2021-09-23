@@ -1,0 +1,87 @@
+---
+title: 'Course Project Part 1: Investigation of the Exponential Distribution'
+author: 'Tatiana Lezhneva'
+output:
+  pdf_document: 
+    fig_height: 3.5
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+cache = TRUE 
+```
+
+## Overview
+ In this project we are going to investigate the Exponential Distribution (X ~ Exp(lambda)) and compare it with the Central Limit Theorem (CLT). The mean of the exponential distribution and standard deviation are 1/lambda. 
+ 
+Simulation parameters: 
+
+ * rate, lambda = 0.2 (for all of the simulations),
+ 
+ * number of observation, n = 40,
+ 
+ * number of simulations, sims = 1000.
+ 
+## Simulations
+```{r Simulations}
+# set parameters for simulation
+lambda <- 0.2
+n <- 40
+sims <- 1000
+# run simulations
+exp <- replicate(sims, rexp(n = n, rate = lambda))
+# calculate mean of every simulation 
+exp_means <- apply(x <- exp, MARGIN = 2, FUN = mean)
+# plot histogram of means
+hist(exp_means, breaks = 30, xlim = c(2,8), main = "Distribution of Means", xlab = "Mean")
+```
+
+## Results
+
+### 1. Sample Mean versus Theoretical Mean
+
+Lets calculate the mean of our simulations means distribution and plot it and on histogram. 
+```{r 1, echo=FALSE}
+hist(exp_means, breaks = 30, xlim = c(2,8), main = "Distribution of Means", xlab = "Mean")
+abline(v = mean(exp_means), col = "red")
+abline(v = 1/lambda, col = "green")
+```
+
+The sample mean `r (mean(exp_means))` (red line) is very close to the theoretical mean `r (1 / lambda)` (green line)
+
+### 2. Sample Variance versus Theoretical Variance
+
+```{r 2, echo=TRUE}
+exp_var <- var(exp_means)
+exp_sd <- sd(exp_means)
+t_var <- (1/lambda)^2 / n
+t_sd <- 1/(lambda * sqrt(n))
+```
+Variances and Standart Deviations are very close too:
+
+standart deviation sample/ theoretical: `r (exp_sd)`/ `r (t_sd)`
+ 
+variance sample/ theoretical:  `r (exp_var)` / `r (t_var)`
+
+### 3. Distribution
+The distribition of means looks like normal destribution curve:
+```{r 3, echo=TRUE}
+hist(exp_means, probability = TRUE, breaks = 30, xlim = c(2,8), 
+     main = "Distribution of Means", xlab = "Mean") 
+lines(density(exp_means), col = "green")
+```
+
+Lets looke at quantile-quantile plot:
+```{r 4}
+library(car)
+qqPlot(exp_means, ylab = "destribution of means quantiles", main = "Normal Q-Q Plot")
+
+```
+Most of the points lie very close to a stright line, whith shows normal quantiles.
+
+And finally we can count the 95% confidence interval of mean:
+```{r}
+mean(exp_means)+ c(-1,1) * qnorm(0.975) * sd(exp_means)/sqrt(n)
+```
+
+
+

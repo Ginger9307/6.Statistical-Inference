@@ -1,0 +1,70 @@
+---
+title: "Course Project Part 2 - Analyze the ToothGrowth data"
+author: "Tatiana Lezhneva"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overveiw 
+There is a dataset __ToothGrows__ which shows the effect of vitamin C on tooth growth in guinea pigs. The response is the length of odontoblasts (cells responsible for tooth growth) in 60 guinea pigs. Each animal received one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, orange juice (OJ) or ascorbic acid (a form of vitamin C and coded as VC).
+We are going to do some exploratory data analyses and then compare tooth growth by dilivery method and dose.
+
+## 1. Exploratory data analyses
+```{r echo=TRUE}
+rawdata <- ToothGrowth
+str(rawdata)
+```
+So we have 60 observations on 3 variables: Tooth length, Supplement type and Dose in milligramm/day.
+Transformormation of variable Dose to factor:
+```{r echo=TRUE}
+rawdata$dose <- as.factor(rawdata$dose)
+str(rawdata)
+```
+Summary statictics:
+```{r echo=TRUE}
+summary(rawdata)
+```
+Lets plot boxplots length by dose for every delivery method
+```{r echo=TRUE}
+library(ggplot2)
+
+ggplot(rawdata, aes(y = len, x = dose)) +
+    geom_boxplot(aes(fill = dose)) +
+    facet_wrap(~ supp ) +
+    scale_fill_brewer(palette = "Set2") +
+    labs(x = "Dose(mg/day)", y = "Length") +
+    ggtitle("Length by Supplement and Dose ")
+```
+
+Looks like the amount of dose has an impact on length unlike delivery method but lets test both hypotheses.
+
+## 2. Hythoteses Testing
+
+As we are going to use T-test, lets assume: 
+
+* all observations are independant
+* pigs were chosen randomly.
+
+### 2.1. Impact of Delivery Method of Vitamin C
+$H_0$: The means of different delivery method groups are the same.
+
+$H_a$: The means of different delivery method groups are different.
+```{r}
+t.test(len ~ supp, data = rawdata)
+```
+### 2.2. Impact of Vitamin C Dose
+$H_0$: The means of groups (dose = 0.5 and 2)  are the same.
+
+$H_a$: The means of groups (dose = 0.5 and 2) are different.
+```{r}
+t.test(rawdata$len[rawdata$supp == "OJ"], rawdata$len[rawdata$supp == "VC"])
+t.test(len ~ dose, data = rawdata[rawdata$dose %in% c(0.5, 2),])
+```
+
+## Conclusions
+In the first testing of delivery methods, we've got the p-value 0.06. At first glance the p-value is greater than 5% significant level and says that we can't reject $H_0$. But on the other hand p-value is so close to the significant level that I would prefer to say that more observations are needed.
+In the second testing about vitamin C dose we've got p-value close to 0 that says we have reasons to reject $H_0$ and the amount of vitamin C dose does have an impact on tooth growth.  
+
